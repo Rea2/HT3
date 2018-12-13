@@ -1,7 +1,13 @@
 package url_explorer;
 
+import url_explorer.instruction.Instruction;
+import url_explorer.instruction.InstructionsReader;
+
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Created by Raik Yauheni on 11.12.2018.
@@ -25,12 +31,22 @@ public class Runner {
 
     public void perform(String[] args) throws IllegalArgumentException {
         isArgsValidated = false;
-        // Checking  arguments
         checkArgs(args);
+        if(!isArgsValidated) {
+            throw new IllegalArgumentException("Illegal arguments. Unknown Error.");
+        }
 
+        InstructionsReader instructionsReader = new InstructionsReader();
+        for (int i = 0 ; i < args.length; i+=2) {
+            if (instructionsReader.addInstructionsFromFile(args[i])) {
+// создаем лог файл из args+1
+        }
+            Instruction inst = null;
+            while(instructionsReader.hasNextInstruction()) {
+                inst = instructionsReader.nextInstruction();
+            }
+        }
     }
-
-
 
     public void checkArgs(String [] paths) throws IllegalArgumentException {
         // Fast checks number of arguments
@@ -43,27 +59,25 @@ public class Runner {
         if ((paths.length % 2) != 0){
             throw new IllegalArgumentException("Wrong number of arguments.\n" + ILLEGAL_ARGUMENTS);
         }
-
         // Check arguments
         File file = null;
         for (int i = 0 ; i < paths.length; i++) {
 
-            // Check the first arguments of every pair
+            // Check the first arguments of every pair.
             if (i%2 == 0) {
-                checkFirstArg(paths[i]);
-            // Check  the second argument of every pair
+                checkInstructionsPath(paths[i]);
+            // Check  the second argument of every pair.
             } else {
-                checkSecondArg(paths[i]);
+                checkLogFilePath(paths[i]);
             }
         }
         isArgsValidated = true;
     }
 
-    //
-    public void checkFirstArg(String arg) throws IllegalArgumentException {
-        File file = null;
+    public void checkInstructionsPath(String arg) throws IllegalArgumentException {
+        Path path = null;
 
-        // Check existension of  file with instruction
+        // Check extension of file with instructions.
         int j = arg.lastIndexOf('.');
         if (j > 0) {
             if (!arg.substring(j+1).equalsIgnoreCase("txt")) {
@@ -71,29 +85,26 @@ public class Runner {
                         ILLEGAL_ARGUMENTS);
             }
         }
-        // Check if file with instruction exist
-        file = new File(arg);
-        if (!file.isFile()) {
-            throw new  IllegalArgumentException (arg + ": File with instructions doesn't exist"
+        // Check if file with instruction exists.
+        path = Paths.get(arg);
+        if (!Files.isReadable(path)) {
+            throw new  IllegalArgumentException (arg + ": File with instructions doesn't exist or write access denied "
                     + ILLEGAL_ARGUMENTS);
         }
     }
 
-    public void checkSecondArg(String arg) throws IllegalArgumentException {
+    public void checkLogFilePath(String arg) throws IllegalArgumentException, SecurityException {
         File file = null;
-        checkSecondArg(arg);
         file = new File(arg);
-        if (!file.isFile()) {
+        if (file.isFile()) {
+                file.canWrite();
+        } else {
             try {
                 file.createNewFile();
-
             } catch (IOException e) {
                 throw new  IllegalArgumentException (arg + "Wrong path. Can't create log file"
                         + ILLEGAL_ARGUMENTS);
             }
         }
     }
-
-
-
 }

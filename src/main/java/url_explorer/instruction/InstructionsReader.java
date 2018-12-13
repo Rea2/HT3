@@ -1,9 +1,6 @@
 package url_explorer.instruction;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
@@ -14,29 +11,30 @@ import java.util.Deque;
 public class InstructionsReader {
     private Deque<Instruction> instructions = new ArrayDeque<>();
     private TypesInstructions[] typesWorkInstructions;
-    private String errorReadInstruction;
 
     public InstructionsReader() {
         TypesInstructions[] tI = TypesInstructions.values();
 
         // Getting array types of working instructions
-        typesWorkInstructions = Arrays.copyOfRange(tI, 0, tI.length - 2);
+        typesWorkInstructions = Arrays.copyOfRange(tI, 0, TypesInstructions.ERROR_READING.ordinal()-1);
     }
 
-    public boolean AddInstructionsFromFile (String path) throws FileNotFoundException {
+    public boolean addInstructionsFromFile(String path) {
+        File file = new File(path);
         try {
-            BufferedReader br = new BufferedReader(new FileReader(path));
+
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            instructions.add(getBeginInstruction(file));
             String inputLine;
             while ((inputLine = br.readLine()) != null)   {
                 instructions.add(createInstruction(inputLine));
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }
         finally {
-            instructions.add(getEndOfFileInstruction());
-            if (instructions.size() != 0) return true;
+            instructions.add(getEndOfFileInstruction(file));
+            if (instructions.size() > 2) return true;
             else return false;
         }
     }
@@ -50,7 +48,15 @@ public class InstructionsReader {
         }
     }
 
-    public Instruction popInstruction()  {
+    public boolean hasNextInstruction(){
+        if (instructions.size() > 0 ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public Instruction nextInstruction()  {
         return  instructions.poll();
     }
 
@@ -60,13 +66,14 @@ public class InstructionsReader {
         if ((!(line.contains("open") && (!line.contains("check"))))) {
             return getErrorInstruction(line);
         }
-        // Check line.  If it is correct, the  method will create working instruction
+        // Check line.  If the line is correct, the method will create working instruction
         for (TypesInstructions type : typesWorkInstructions) {
                 if (line.startsWith(type.getDescription())) {
                     return createWorkingInstruction(type, line);
                 }
         }
-        // ...otherwise  creates ERROR_READING instructions
+
+        // ...otherwise it will create ERROR_READING instructions
         return getErrorInstruction(line);
     }
 
@@ -92,11 +99,15 @@ public class InstructionsReader {
        else return false;
     }
 
+    private Instruction getBeginInstruction(File file) {
+        return new Instruction(TypesInstructions.BEGIN, file.getAbsolutePath());
+    }
+
     private Instruction getErrorInstruction(String line) {
         return new Instruction(TypesInstructions.ERROR_READING, line);
     }
 
-    private Instruction getEndOfFileInstruction() {
+    private Instruction getEndOfFileInstruction(File file) {
         return new Instruction(TypesInstructions.END, "");
     }
 

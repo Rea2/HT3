@@ -9,13 +9,13 @@ import java.util.List;
 public class Instruction {
 
     private TypesInstructions typeCommand;
-    private List<String> arguments;
+    private String[] arguments;
     public static final  String ERROR_NUMBER_ARGUMENTS = "It was defined wrong number of parameters";
 
 
     public Instruction(TypesInstructions typeCommand, String ... arguments) {
         this.typeCommand = typeCommand;
-        this.arguments = Arrays.asList(arguments);
+        this.arguments = arguments;
     }
 
     public TypesInstructions getTypeCommand() {
@@ -26,11 +26,11 @@ public class Instruction {
         this.typeCommand = typeCommand;
     }
 
-    public List<String> getArguments() {
+    public String[] getArguments() {
         return arguments;
     }
 
-    public void setArguments(List<String> arguments) {
+    public void setArguments(String[] arguments) {
         this.arguments = arguments;
     }
 }
