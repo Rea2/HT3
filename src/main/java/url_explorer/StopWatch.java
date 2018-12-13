@@ -6,7 +6,8 @@ import java.util.concurrent.TimeUnit;
  * Created by Raik Yauheni on 12.12.2018.
  */
 public class StopWatch {
-    private long startTimeNanos = 0;
+    private long startTimeNanos = -1L;
+
 
     public void start(){
         startTimeNanos = System.nanoTime();
@@ -19,6 +20,7 @@ public class StopWatch {
     public long stopAndGetElapsedTime(){
         return (System.nanoTime() - startTimeNanos);
     }
+
 }
 
 

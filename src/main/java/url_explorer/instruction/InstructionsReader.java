@@ -108,7 +108,7 @@ public class InstructionsReader {
     }
 
     private Instruction getEndOfFileInstruction(File file) {
-        return new Instruction(TypesInstructions.END, "");
+        return new Instruction(TypesInstructions.END, file.getAbsolutePath());
     }
 
 }
