@@ -22,7 +22,6 @@ public class InstructionsReader {
     public boolean addInstructionsFromFile(String path) {
         File file = new File(path);
         try {
-
             BufferedReader br = new BufferedReader(new FileReader(file));
             instructions.add(getBeginInstruction(file));
             String inputLine;

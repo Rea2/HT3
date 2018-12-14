@@ -5,6 +5,7 @@ import url_explorer.URLWorker;
 import url_explorer.instruction.Instruction;
 import url_explorer.instruction.TypesInstructions;
 
+import java.io.IOException;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,10 +20,11 @@ public class Handler {
     private URLConnection urlConn = null;
     private String htmlDocument = null;
     private StopWatch stopWatch;
+
+    // Variables for generate summary
     private int countFailed = 0;
     private int countPassed = 0;
     List<Long> elapsedTimes = new ArrayList<>();
-
 
     public String execute (Instruction instruction) {
         String[] args = instruction.getArguments();
@@ -38,11 +40,13 @@ public class Handler {
 
             case OPEN:
                 urlWorker =  new URLWorker();
-                urlConn  =  urlWorker.getConnection(args[0], args[1]);
-                htmlDocument = urlWorker.getHtmlPage();
-
-                logMessage =  addMessageToLog(true, TypesInstructions.OPEN, args);
-//              нужно дописать негативный сценарий.
+                try {
+                    urlConn  =  urlWorker.getConnection(args[0], args[1]);
+                    htmlDocument = urlWorker.getHtmlPage();
+                    logMessage =  addMessageToLog(true, TypesInstructions.OPEN, args);
+                } catch (IOException e) {
+                    logMessage =  addMessageToLog(false, TypesInstructions.OPEN, args);
+                }
                 break;
 
             case CHECK_LINK_PRESENT_BY_HREF:
@@ -74,10 +78,9 @@ public class Handler {
                 logMessage = getEndStrings();
                 reserHandlerState();
                 break;
-            default:
-//   бросить исключение;
-                throw new IllegalStateException("Unsupported instruction");
 
+            default:
+                throw new IllegalStateException("Unsupported instruction");
         }
         return logMessage;
     }
@@ -132,7 +135,6 @@ public class Handler {
                 .append("Passed/Failed: " + countPassed + "/" + countFailed + "\n")
                 .append("Total time: " + getTotalTime()  + "\n")
                 .append("Average time: " + getAverageTime()  + "\n");
-
         return sb.toString();
     }
 
@@ -155,19 +157,11 @@ public class Handler {
         String htmlDocument = null;
     }
 
-
-
-
-
-
-
-
-
-    public String readHtmlDocument() {
-        if (urlConn != null) {
-            return urlWorker.getHtmlPage();
-        } else return null;
-    }
+//    public String readHtmlDocument() {
+//        if (urlConn != null) {
+//            return urlWorker.getHtmlPage();
+//        } else return null;
+//    }
 
 
 

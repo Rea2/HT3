@@ -1,22 +1,27 @@
 package url_explorer;
 
+import url_explorer.handlers.Handler;
 import url_explorer.instruction.Instruction;
 import url_explorer.instruction.InstructionsReader;
+import url_explorer.logging.Logger;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 /**
  * Created by Raik Yauheni on 11.12.2018.
  */
 public class Runner {
+    private List<String> logMessages;
 
-    private String[] args = null;
     private boolean isArgsValidated = false;
-    public final String FRAME_FOR_ERROR_MESSAGE =
+
+    public final static String TAB = "   ";
+    public final static String FRAME_FOR_ERROR_MESSAGE =
             "--------------------------------------------------------------------------------------------------";
     public final String ILLEGAL_ARGUMENTS = "Please input an even number of arguments: \n" +
              FRAME_FOR_ERROR_MESSAGE + "\n" +
@@ -25,11 +30,18 @@ public class Runner {
             "If it already exists - it will be rewrite\n" +
              FRAME_FOR_ERROR_MESSAGE + "\n";
 
-    public static void main(String[] args) throws IllegalArgumentException {
-        new Runner().perform(args);
+    public static void main(String[] args){
+        try {
+            new Runner().perform(args);
+        } catch (IOException | IllegalArgumentException e) {
+            System.out.println(Runner.TAB + "Dear user. Error happened while program was running ");
+            System.out.println( e.getMessage());
+            System.out.println("Please, try again");
+        }
     }
 
-    public void perform(String[] args) throws IllegalArgumentException {
+    public void perform(String[] args) throws IllegalArgumentException, IOException {
+
         isArgsValidated = false;
         checkArgs(args);
         if(!isArgsValidated) {
@@ -37,13 +49,25 @@ public class Runner {
         }
 
         InstructionsReader instructionsReader = new InstructionsReader();
+        Logger logger = null;
         for (int i = 0 ; i < args.length; i+=2) {
+            Handler handler = new Handler();
+
             if (instructionsReader.addInstructionsFromFile(args[i])) {
-// создаем лог файл из args+1
-        }
-            Instruction inst = null;
-            while(instructionsReader.hasNextInstruction()) {
-                inst = instructionsReader.nextInstruction();
+                Instruction inst = null;
+                logger = new Logger(args[i+1]);
+
+                while (instructionsReader.hasNextInstruction()) {
+                    inst = instructionsReader.nextInstruction();
+                    logMessages.add ( handler.execute(inst));
+                }
+                try {
+                    logger.logging(logMessages);
+                } catch (IOException e) {
+                   throw new IOException("Can not to write data into log file. " +
+                           "Perhaps, either threare are not permissions for this operation, " +
+                           "or file is used by another application ");
+                }
             }
         }
     }
@@ -102,8 +126,7 @@ public class Runner {
             try {
                 file.createNewFile();
             } catch (IOException e) {
-                throw new  IllegalArgumentException (arg + "Wrong path. Can't create log file"
-                        + ILLEGAL_ARGUMENTS);
+                throw new  IllegalArgumentException (arg + " - wrong path. Can not create log file\n");
             }
         }
     }
