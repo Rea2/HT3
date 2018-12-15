@@ -13,7 +13,8 @@ public class InstructionsReader {
     private TypesInstructions[] typesWorkInstructions;
 
     public InstructionsReader() {
-        // set subarray with types of working instructions
+
+        // Set subArray with types of working instructions
         typesWorkInstructions = Arrays.copyOfRange(TypesInstructions.values(),
                 0, TypesInstructions.ERROR_READING.ordinal());
     }

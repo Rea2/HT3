@@ -19,8 +19,7 @@ import java.util.List;
  * Created by Raik Yauheni on 11.12.2018.
  */
 public class Runner {
-    private List<String> logMessages =new ArrayList<>();
-
+    private List<String> logMessages = new ArrayList<>();
     private boolean isArgsValidated = false;
 
     public final static String TAB = "   ";
