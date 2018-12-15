@@ -18,7 +18,7 @@ public class Instruction {
         this.arguments = arguments;
     }
 
-    public TypesInstructions getTypeCommand() {
+    public TypesInstructions getType() {
         return typeCommand;
     }
 

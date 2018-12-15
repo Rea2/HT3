@@ -14,10 +14,10 @@ public class StopWatch {
     }
 
     public long stopAndGetElapsedTimeMillis(){
-        return TimeUnit.NANOSECONDS.toMillis(stopAndGetElapsedTime());
+        return TimeUnit.NANOSECONDS.toMillis(stopAndGetElapsedTimeNanos());
     }
 
-    public long stopAndGetElapsedTime(){
+    public long stopAndGetElapsedTimeNanos(){
         return (System.nanoTime() - startTimeNanos);
     }
 

@@ -15,28 +15,22 @@ public class URLWorker  {
     private String htmlPage;
     private HttpURLConnection connection;
 
-
-
     public URLConnection getConnection(String textUrl, String timeout) throws IOException {
-
             int time = Integer.parseInt(timeout);
-            // get URL content
+
+            // Get URL with content for testing
             url = new URL(textUrl);
             connection =  (HttpURLConnection) url.openConnection();
+
+            // Set connection's properties
             connection.setConnectTimeout(time * 1000);
             connection.setReadTimeout(time * 1000);
             connection.setRequestMethod("GET");
             connection.connect();
             return connection;
-
     }
 
-//    @Override
-//    public void measureTime() throws IOException {
-//            connection.connect();
-//    }
-
-    public String  getHtmlPage() {
+    public String getHtmlPage() {
         if (connection == null) {
             return null;
         }

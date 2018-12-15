@@ -13,17 +13,16 @@ public class InstructionsReader {
     private TypesInstructions[] typesWorkInstructions;
 
     public InstructionsReader() {
-        TypesInstructions[] tI = TypesInstructions.values();
-
-        // Getting array types of working instructions
-        typesWorkInstructions = Arrays.copyOfRange(tI, 0, TypesInstructions.ERROR_READING.ordinal()-1);
+        // set subarray with types of working instructions
+        typesWorkInstructions = Arrays.copyOfRange(TypesInstructions.values(),
+                0, TypesInstructions.ERROR_READING.ordinal());
     }
 
-    public boolean addInstructionsFromFile(String path) {
-        File file = new File(path);
+    public boolean addInstructionsToDequeFromFile(String filePath) {
+        File file = new File(filePath);
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
-            instructions.add(getBeginInstruction(file));
+            instructions.add(createBeginInstruction(file));
             String inputLine;
             while ((inputLine = br.readLine()) != null)   {
                 instructions.add(createInstruction(inputLine));
@@ -32,13 +31,13 @@ public class InstructionsReader {
             e.printStackTrace();
         }
         finally {
-            instructions.add(getEndOfFileInstruction(file));
+            instructions.add(createEndOfFileInstruction(file));
             if (instructions.size() > 2) return true;
             else return false;
         }
     }
 
-    public boolean clearQueueInstruction(){
+    public boolean clearQueueInstructions(){
         instructions.clear();
         if (instructions.size() == 0) {
             return true;
@@ -61,25 +60,24 @@ public class InstructionsReader {
 
     public Instruction createInstruction(String line) {
 
-        // Fast check is instruction correct
-        if ((!(line.contains("open") && (!line.contains("check"))))) {
-            return getErrorInstruction(line);
-        }
-        // Check line.  If the line is correct, the method will create working instruction
+        // Check line.  If the line contains supported working instruction, the method will create working instruction
         for (TypesInstructions type : typesWorkInstructions) {
-                if (line.startsWith(type.getDescription())) {
-                    return createWorkingInstruction(type, line);
-                }
+            if (line.startsWith(type.getAbbreviation())) {
+                return createWorkingInstruction(type, line);
+            }
+        }
+         // ...otherwise it will create ERROR_READING instruction
+        return createErrorInstruction(line);
         }
 
-        // ...otherwise it will create ERROR_READING instructions
-        return getErrorInstruction(line);
+    private Instruction createBeginInstruction(File file) {
+        return new Instruction(TypesInstructions.BEGIN, file.getAbsolutePath());
     }
 
     private Instruction createWorkingInstruction(TypesInstructions type, String line) {
         Instruction result;
         String bodyInstruction =
-                line.replaceFirst(type.getDescription() + " \"","" );
+                line.replaceFirst(type.getAbbreviation() + " \"","" );
         bodyInstruction = bodyInstruction.substring(0, bodyInstruction.length()-1);
         String[] arguments  = bodyInstruction.split("\" \"");
         if (isNumberOfParametarsCorrect(type, arguments)) {
@@ -87,6 +85,14 @@ public class InstructionsReader {
         } else {
             return new Instruction(TypesInstructions.ERROR_READING, Instruction.ERROR_NUMBER_ARGUMENTS);
         }
+    }
+
+    private Instruction createErrorInstruction(String line) {
+        return new Instruction(TypesInstructions.ERROR_READING, line);
+    }
+
+    private Instruction createEndOfFileInstruction(File file) {
+        return new Instruction(TypesInstructions.END, file.getAbsolutePath());
     }
 
     private boolean isNumberOfParametarsCorrect(TypesInstructions type, String[] args) {
@@ -97,17 +103,4 @@ public class InstructionsReader {
        }
        else return false;
     }
-
-    private Instruction getBeginInstruction(File file) {
-        return new Instruction(TypesInstructions.BEGIN, file.getAbsolutePath());
-    }
-
-    private Instruction getErrorInstruction(String line) {
-        return new Instruction(TypesInstructions.ERROR_READING, line);
-    }
-
-    private Instruction getEndOfFileInstruction(File file) {
-        return new Instruction(TypesInstructions.END, file.getAbsolutePath());
-    }
-
 }

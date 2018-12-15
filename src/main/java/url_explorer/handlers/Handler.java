@@ -2,6 +2,8 @@ package url_explorer.handlers;
 
 import url_explorer.StopWatch;
 import url_explorer.URLWorker;
+import url_explorer.exceptions.NotAvailableDocumentException;
+import url_explorer.exceptions.WrongInstructionException;
 import url_explorer.instruction.Instruction;
 import url_explorer.instruction.TypesInstructions;
 
@@ -19,92 +21,100 @@ public class Handler {
     private URLWorker  urlWorker= null;
     private URLConnection urlConn = null;
     private String htmlDocument = null;
-    private StopWatch stopWatch;
+    private StopWatch stopWatch = new StopWatch();
 
     // Variables for generate summary
     private int countFailed = 0;
     private int countPassed = 0;
     List<Long> elapsedTimes = new ArrayList<>();
 
-    public String execute (Instruction instruction) {
+    public String execute (Instruction instruction) throws WrongInstructionException, NotAvailableDocumentException {
         String[] args = instruction.getArguments();
         String regex = null;
         String logMessage = null;
         long elapsedTime = 0L;
         stopWatch.start();
-
-        switch (instruction.getTypeCommand()) {
+        switch (instruction.getType()) {
             case BEGIN:
-                logMessage =  "Logging for file:" + args[0] + "\n";
+                logMessage =  "Logging for file: " + args[0] + "\n";
                 break;
 
             case OPEN:
                 urlWorker =  new URLWorker();
+                boolean isPassed = false;
                 try {
                     urlConn  =  urlWorker.getConnection(args[0], args[1]);
                     htmlDocument = urlWorker.getHtmlPage();
-                    logMessage =  addMessageToLog(true, TypesInstructions.OPEN, args);
+                    isPassed = true;
                 } catch (IOException e) {
-                    logMessage =  addMessageToLog(false, TypesInstructions.OPEN, args);
+                    isPassed = false;
+                } finally {
+                    logMessage = createLogMessageFromInstruction(isPassed, TypesInstructions.OPEN, args);
                 }
                 break;
 
             case CHECK_LINK_PRESENT_BY_HREF:
-//              String regex  = "(?:href ?= ?)\".+\"";
                 regex =  "href ?= ?\"" + args[0] + "\""; // поиск тега href с содержимым из args[0]
-                logMessage =  addMessageToLog(isHtmlPageContainsRegex(regex), TypesInstructions.CHECK_LINK_PRESENT_BY_HREF, args);
+                logMessage =  createLogMessageFromInstruction(isHtmlPageContainsRegex(regex),
+                        TypesInstructions.CHECK_LINK_PRESENT_BY_HREF, args);
                 break;
 
             case CHECK_LINK_PRESENT_BY_NAME:
-                regex = "<a.+>.+  " + args[0] + "]</a>";
-                logMessage =  addMessageToLog(isHtmlPageContainsRegex(regex), TypesInstructions.CHECK_LINK_PRESENT_BY_NAME, args);
+                regex = "<a.+>.+" + args[0] + "<\\/a>";
+                logMessage =  createLogMessageFromInstruction(isHtmlPageContainsRegex(regex),
+                        TypesInstructions.CHECK_LINK_PRESENT_BY_NAME, args);
                 break;
 
             case CHECK_PAGE_TITLE:
                 regex = "<title>" + args[0] + "</title>";
-                logMessage =  addMessageToLog(isHtmlPageContainsRegex(regex), TypesInstructions.CHECK_LINK_PRESENT_BY_NAME, args);
+                logMessage =  createLogMessageFromInstruction(isHtmlPageContainsRegex(regex),
+                        TypesInstructions.CHECK_LINK_PRESENT_BY_NAME, args);
                 break;
 
             case CHECK_PAGE_CONTAINS:
                 regex = args[0];
-                logMessage =  addMessageToLog(isHtmlPageContainsRegex(regex), TypesInstructions.CHECK_PAGE_CONTAINS, args);
+                logMessage =  createLogMessageFromInstruction(isHtmlPageContainsRegex(regex),
+                        TypesInstructions.CHECK_PAGE_CONTAINS, args);
                 break;
 
             case ERROR_READING:
-                logMessage =  addMessageToLog(false, TypesInstructions.ERROR_READING, args);
+                logMessage =  createLogMessageFromInstruction(false,
+                        TypesInstructions.ERROR_READING, args);
                 break;
 
             case END:
-                logMessage = getEndStrings();
-                reserHandlerState();
+                logMessage = createLogMessageFromEndInstruction();
+                resetHandlerState();
                 break;
 
             default:
-                throw new IllegalStateException("Unsupported instruction");
+                throw new WrongInstructionException("Unsupported instruction");
         }
+        System.out.println(logMessage);
         return logMessage;
     }
 
-    public boolean isHtmlPageContainsRegex(String regex) throws IllegalStateException {
-            if (htmlDocument ==null) throw new  IllegalStateException("There is not any HTML pages for searching");
+    public boolean isHtmlPageContainsRegex(String regex) throws NotAvailableDocumentException {
+            if (htmlDocument ==null) throw new NotAvailableDocumentException("There is not any HTML pages for searching");
             Pattern pattern = Pattern.compile(regex);
             Matcher matcher = pattern.matcher(htmlDocument);
             return  matcher.find();
     }
 
-    public String addMessageToLog (boolean isPassed, TypesInstructions type, String ... args) {
-        long elapsedTime = stopWatch.stopAndGetElapsedTime();
-
+    public String createLogMessageFromInstruction(boolean isPassed, TypesInstructions type, String ... args) {
+        long elapsedTime = stopWatch.stopAndGetElapsedTimeMillis();
+        elapsedTimes.add(elapsedTime);
         StringBuilder sb = new StringBuilder();
 
         // Create the first character for log message
         if (type == TypesInstructions.ERROR_READING) {
             sb.append("-");
         } else {
-            // add to string "+" for succes result or "!" if it is failed
+
+            // Add to string "+" for passed test or "!" if it  failed
             sb.append(isPassed == true ? "+" : "!");
         }
-            sb.append(" ["+type.getDescription() + " ");
+            sb.append(" ["+type.getAbbreviation() + " ");
 
         // add to string arguments
         for (int i = 0; i < args.length; i++) {
@@ -116,12 +126,11 @@ public class Handler {
             }
         }
         sb.append(" " + elapsedTime + "\n");
-        countInstruction(isPassed);
-
+        countInstructions(isPassed);
         return sb.toString();
     }
 
-    public void countInstruction(boolean isPassed) {
+    public void countInstructions(boolean isPassed) {
         if (isPassed) {
             countPassed++;
         } else {
@@ -129,9 +138,10 @@ public class Handler {
         }
     }
 
-    public String getEndStrings() {
+    public String createLogMessageFromEndInstruction() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Total tests: " + countFailed+countPassed + "\n")
+        int totalTestsAmount = countFailed + countPassed;
+        sb.append("Total tests: " + totalTestsAmount + "\n")
                 .append("Passed/Failed: " + countPassed + "/" + countFailed + "\n")
                 .append("Total time: " + getTotalTime()  + "\n")
                 .append("Average time: " + getAverageTime()  + "\n");
@@ -149,7 +159,7 @@ public class Handler {
        return getTotalTime()/ elapsedTimes.size();
     }
 
-    private void reserHandlerState() {
+    private void resetHandlerState() {
         countFailed = 0;
         countPassed = 0;
         urlWorker= null;
@@ -157,11 +167,7 @@ public class Handler {
         String htmlDocument = null;
     }
 
-//    public String readHtmlDocument() {
-//        if (urlConn != null) {
-//            return urlWorker.getHtmlPage();
-//        } else return null;
-//    }
+
 
 
 

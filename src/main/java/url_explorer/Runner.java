@@ -1,5 +1,7 @@
 package url_explorer;
 
+import url_explorer.exceptions.NotAvailableDocumentException;
+import url_explorer.exceptions.WrongInstructionException;
 import url_explorer.handlers.Handler;
 import url_explorer.instruction.Instruction;
 import url_explorer.instruction.InstructionsReader;
@@ -10,13 +12,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Raik Yauheni on 11.12.2018.
  */
 public class Runner {
-    private List<String> logMessages;
+    private List<String> logMessages =new ArrayList<>();
 
     private boolean isArgsValidated = false;
 
@@ -33,19 +36,19 @@ public class Runner {
     public static void main(String[] args){
         try {
             new Runner().perform(args);
-        } catch (IOException | IllegalArgumentException e) {
+        } catch (IOException | IllegalArgumentException | WrongInstructionException | NotAvailableDocumentException e) {
             System.out.println(Runner.TAB + "Dear user. Error happened while program was running ");
             System.out.println( e.getMessage());
             System.out.println("Please, try again");
         }
     }
 
-    public void perform(String[] args) throws IllegalArgumentException, IOException {
-
+    public void perform(String[] args) throws IllegalArgumentException,
+            IOException, WrongInstructionException, NotAvailableDocumentException {
         isArgsValidated = false;
         checkArgs(args);
         if(!isArgsValidated) {
-            throw new IllegalArgumentException("Illegal arguments. Unknown Error.");
+            throw new IllegalArgumentException("Illegal arguments. Unknown error.");
         }
 
         InstructionsReader instructionsReader = new InstructionsReader();
@@ -53,13 +56,14 @@ public class Runner {
         for (int i = 0 ; i < args.length; i+=2) {
             Handler handler = new Handler();
 
-            if (instructionsReader.addInstructionsFromFile(args[i])) {
+            if (instructionsReader.addInstructionsToDequeFromFile(args[i])) {
                 Instruction inst = null;
                 logger = new Logger(args[i+1]);
 
                 while (instructionsReader.hasNextInstruction()) {
                     inst = instructionsReader.nextInstruction();
-                    logMessages.add ( handler.execute(inst));
+                    String message = handler.execute(inst);
+                    logMessages.add (message);
                 }
                 try {
                     logger.logging(logMessages);

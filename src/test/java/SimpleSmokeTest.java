@@ -8,7 +8,7 @@ import java.lang.reflect.Array;
 public class SimpleSmokeTest {
 
     public static void main(String[] args) {
-        String[] arguments = {"E:\\Coding\\EPAM Training\\HT3\\instructions.txt" , "E:\\Coding\\EPAM Training\\HT3\\target\\logs\\log.txt"};
+        String[] arguments = {"E:\\Coding\\EPAM Training\\HT3\\instructions2.txt" , "E:\\Coding\\EPAM Training\\HT3\\target\\logs\\log.txt"};
         Runner.main(arguments);
     }
 }
