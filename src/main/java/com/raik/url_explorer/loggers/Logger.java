@@ -1,4 +1,4 @@
-package url_explorer.logging;
+package com.raik.url_explorer.loggers;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -8,11 +8,10 @@ import java.nio.file.Paths;
 import java.util.List;
 
 /**
- * Created by Raik Yauheni on 14.12.2018.
+ * @author Raik Yauheni    14.12.2018.
  */
 public class Logger {
-
-    public final String DEFAULT_LOG_FILE = "target/logs/log.txt";
+        public final String DEFAULT_LOG_FILE = "target/logs/log.txt";
     private String pathLogFile;
 
     public Logger() {

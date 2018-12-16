@@ -1,4 +1,4 @@
-package url_explorer;
+package com.raik.url_explorer.utils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,7 +8,7 @@ import java.net.URL;
 import java.net.URLConnection;
 
 /**
- * Created by Raik Yauheni on 11.12.2018.
+ * @author Raik Yauheni
  */
 public class URLWorker  {
     private URL url = null;

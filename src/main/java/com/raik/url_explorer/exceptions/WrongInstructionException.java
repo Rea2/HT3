@@ -1,7 +1,7 @@
-package url_explorer.exceptions;
+package com.raik.url_explorer.exceptions;
 
 /**
- * Created by Raik Yauheni on 15.12.2018.
+ * @author Raik Yauheni    15.12.2018.
  */
 public class WrongInstructionException extends Exception {
 

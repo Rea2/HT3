@@ -1,11 +1,11 @@
-package url_explorer.handlers;
+package com.raik.url_explorer.handlers;
 
-import url_explorer.StopWatch;
-import url_explorer.URLWorker;
-import url_explorer.exceptions.NotAvailableDocumentException;
-import url_explorer.exceptions.WrongInstructionException;
-import url_explorer.instruction.Instruction;
-import url_explorer.instruction.TypesInstructions;
+import com.raik.url_explorer.exceptions.CannotCreateLogFileException;
+import com.raik.url_explorer.exceptions.WrongInstructionException;
+import com.raik.url_explorer.instruction.TypesInstructions;
+import com.raik.url_explorer.utils.StopWatch;
+import com.raik.url_explorer.utils.URLWorker;
+import com.raik.url_explorer.instruction.Instruction;
 
 import java.io.IOException;
 import java.net.URLConnection;
@@ -15,10 +15,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by Raik Yauheni on 12.12.2018.
+ * Универсальный обработчик объектов типа Instruction. Принимает объект Instruction, определяет ее тип и на основании
+ * этого типа выполняет необходимое действие предусмотренное инструкцией.
+ * При необходимости может использовать сторонние утилиты.
+ * @author Raik Yauheni
  */
 public class Handler {
-    private URLWorker  urlWorker= null;
+    private URLWorker urlWorker= null;
     private URLConnection urlConn = null;
     private String htmlDocument = null;
     private StopWatch stopWatch = new StopWatch();
@@ -29,7 +32,15 @@ public class Handler {
     private int countPassed = 0;
     List<Long> elapsedTimes = new ArrayList<>();
 
-    public String execute (Instruction instruction) throws WrongInstructionException, NotAvailableDocumentException {
+    /**
+     *  Выполняет интсрукцию на основании ее типа. Возварщает строку с резальтатом выполнения инструкции,
+     *  текстом инструкции и затраченном времени в секундах с точностью до тысячных.
+     * @param instruction
+     * @return
+     * @throws WrongInstructionException
+     * @throws CannotCreateLogFileException
+     */
+    public String execute (Instruction instruction) throws WrongInstructionException, CannotCreateLogFileException {
         String[] args = instruction.getArguments();
         String regex = null;
         String logMessage = null;
@@ -96,8 +107,9 @@ public class Handler {
         return logMessage;
     }
 
-    public boolean isHtmlPageContainsRegex(String regex) throws NotAvailableDocumentException {
-            if (htmlDocument ==null) throw new NotAvailableDocumentException("There is not any HTML pages for searching");
+
+    public boolean isHtmlPageContainsRegex(String regex) throws CannotCreateLogFileException {
+            if (htmlDocument ==null) throw new CannotCreateLogFileException("There is not any HTML pages for searching");
             Pattern pattern = Pattern.compile(regex);
             Matcher matcher = pattern.matcher(htmlDocument);
             return  matcher.find();

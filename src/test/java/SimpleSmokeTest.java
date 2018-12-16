@@ -1,16 +1,19 @@
-import url_explorer.Runner;
-
-import java.lang.reflect.Array;
+import com.raik.url_explorer.Runner;
 
 /**
- * Created by Raik Yauheni on 14.12.2018.
+ * Данный класс не относится к решению задачи. Использвуется как смоук- тест. Типчиный пример частного решения:)
+ * @author Raik Yauheni
  */
 public class SimpleSmokeTest {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
-        String[] arguments = {"E:\\Coding\\EPAM Training\\HT3\\instructions.txt" , "E:\\Coding\\EPAM Training\\HT3\\target\\logs\\log1.txt",
-                "E:\\Coding\\EPAM Training\\HT3\\instructions2.txt" , "E:\\Coding\\EPAM Training\\HT3\\target\\logs\\log2.txt"};
+        String[] arguments = { "d", "E:\\Coding\\EPAM Training\\HT3\\instructions.txt",
+                "E:\\Coding\\EPAM Training\\HT3\\target\\logs\\log1.txt",
+                "E:\\Coding\\EPAM Training\\HT3\\instructions2.txt" ,
+                "E:\\Coding\\EPAM Training\\HT3\\target\\logs\\log2.txt"};
+
         Runner.main(arguments);
+//        new Runner().perform(arguments);
     }
 }

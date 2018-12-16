@@ -1,13 +1,13 @@
-package url_explorer;
+package com.raik.url_explorer.utils;
 
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by Raik Yauheni on 12.12.2018.
+ * @author Raik Yauheni
  */
 public class StopWatch {
-    private long startTimeNanos = -1L;
 
+    private long startTimeNanos = -1L;
 
     public void start(){
         startTimeNanos = System.nanoTime();
@@ -16,7 +16,6 @@ public class StopWatch {
     public long stopAndGetElapsedTimeMillis(){
         return TimeUnit.NANOSECONDS.toMillis(stopAndGetElapsedTime());
     }
-
 
     public long stopAndGetElapsedTime(){
         return (System.nanoTime() - startTimeNanos);

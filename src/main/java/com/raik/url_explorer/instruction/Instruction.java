@@ -1,17 +1,17 @@
-package url_explorer.instruction;
+package com.raik.url_explorer.instruction;
 
-import java.util.Arrays;
-import java.util.List;
+import com.raik.url_explorer.handlers.Handler;
 
 /**
- * Created by Raik Yauheni on 11.12.2018.
+ * Класс представляет собой инструкцию, включающую тип и аргументы. Используется для передачи информации обработчику
+ * {@link Handler}
+ * @author Raik Yauheni
  */
 public class Instruction {
 
     private TypesInstructions typeCommand;
     private String[] arguments;
     public static final  String ERROR_NUMBER_ARGUMENTS = "It was defined wrong number of parameters";
-
 
     public Instruction(TypesInstructions typeCommand, String ... arguments) {
         this.typeCommand = typeCommand;

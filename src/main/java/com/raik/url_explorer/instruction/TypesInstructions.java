@@ -1,8 +1,18 @@
-package url_explorer.instruction;
+package com.raik.url_explorer.instruction;
+
 
 /**
- * Created by Raik Yauheni on 11.12.2018.
+ * @author Raik Yauheni
  */
+
+import com.raik.url_explorer.handlers.Handler;
+
+/**
+ * Данный класс соджержит все допустимы в приложении типы инструкций.
+ * Тип интсрукции определяет набор дейтсвий, которые должен придеринять обрботчик {@link Handler}
+ * при ее получении
+ */
+
 public enum TypesInstructions {
 
     // Working instructions
