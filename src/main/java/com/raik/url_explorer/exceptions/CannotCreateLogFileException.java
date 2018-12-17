@@ -1,7 +1,7 @@
 package com.raik.url_explorer.exceptions;
 
 /**
- * @author Raik Yauheni    16.12.2018.
+ * @author Raik Yauheni
  */
 public class CannotCreateLogFileException extends Exception {
 

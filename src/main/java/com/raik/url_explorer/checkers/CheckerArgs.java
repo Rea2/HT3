@@ -1,8 +1,7 @@
 package com.raik.url_explorer.checkers;
 
-import com.raik.url_explorer.Runner;
 import com.raik.url_explorer.exceptions.CannotCreateLogFileException;
-
+import com.raik.url_explorer.exceptions.WrongArgumentsException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,9 +11,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 
 /**
- * Проверяет корректность аргументов переданных  перед началом работы в объекте {@link
- *  Runner}. Определяет режим работы программы на основании
- * первого аргумента. В данный момент реализована поддержка только одного режима "d". В этом режиме параметры следует
+ * Принимает массив аргументов, определяет режим работы программы и проверяет корректность переданных аргументов для
+ * данного режима. Режим работы программы определяется по первому агрументу.
+ * На данный момент реализована поддержка только одного режима "d". В этом режиме параметры следует
  * передавать следующим образом:
  * d instruction_file1, log_file1.txt, instruction_file2.txt, log_file2.txt, ... instruction_file_n.txt, log_file_n.txt,
  * где instruction_file - файл с инструкциями, log_file - файл для записи результатов выполнения инструкций.
@@ -38,8 +37,7 @@ public class CheckerArgs {
         return mode;
     }
 
-
-    public boolean checkArgs(String [] args) throws CannotCreateLogFileException {
+    public boolean checkArgs(String [] args) throws CannotCreateLogFileException, WrongArgumentsException {
         if ( (args == null) || (args.length ==0) ) {
             error_message += "There are not any arguments.\n ";
             return false;
@@ -59,7 +57,6 @@ public class CheckerArgs {
             return false;
         }
         return false;
-
     }
 
     public boolean checkFirstArg (String firstArg, String ... supported_modes ) {
@@ -72,30 +69,36 @@ public class CheckerArgs {
         }
     }
 
-    public boolean checkMode_d(String[] args) throws CannotCreateLogFileException {
+    public boolean checkMode_d(String[] args) throws CannotCreateLogFileException, WrongArgumentsException {
 
         // Fast checks arguments
         if (args.length < 3) {
-            error_message = "Too little arguments.\n";
+            error_message+= "Too little arguments.\n";
         }
         if ((args.length % 2) == 0) {
-            error_message = "Wrong number of arguments.\n";
+            error_message+= "Wrong number of arguments.\n";
         }
-
         File file = null;
         int i = 1;
         while (i < args.length) {
 
             // Check every instruction file
-            if (checkInstructionsPath(args[i], "txt") == false) {
-                return false;
+            try {
+                if (i % 2 == 1) {
+                    if (checkInstructionsPath(args[i], "txt") == false) {
+                        return false;
+                    }
+                } else {
+                    if (checkLogFilePath(args[i], "txt") == false) {
+                        return false;
+                    }
+                }
+            } catch (RuntimeException e) {
+                 String message = (args[i] + ": Wrong path or no permissions for ");
+                 message+=  i % 2 == 1 ? "reading" : "writing";
+                 throw new WrongArgumentsException(message, e);
             }
-
-            // Check every log file
-            if (checkLogFilePath(args[i + 1], "txt") == false) {
-                return false;
-            }
-            i += 2;
+            i++;
         }
         return true;
     }
@@ -115,12 +118,13 @@ public class CheckerArgs {
             // Check extension
             return isProperFileExtension(pathToFile, extension);
         } else {
-            error_message = pathToFile + ": Instruction file doesn't exist or write access is denied";
+            error_message+= pathToFile + ": Instruction file doesn't exist or write access is denied";
             return  false;
         }
     }
 
-    public boolean checkLogFilePath(String pathToFile, String extension) throws CannotCreateLogFileException {
+
+    public boolean checkLogFilePath(String pathToFile, String extension) throws CannotCreateLogFileException  {
         Path path = null;
         try {
             path = Paths.get(pathToFile);
@@ -149,7 +153,7 @@ public class CheckerArgs {
         if (pathToFile.substring(j + 1).equalsIgnoreCase(extension)) {
             return true;
         } else {
-            error_message = pathToFile + ": illegal extension of instruction file ." +
+            error_message+= pathToFile + ": illegal extension of instruction file ." +
                     " The mode supported extensions: " + extension+  "\"\n";
             return false;
         }

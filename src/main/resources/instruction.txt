@@ -1,5 +1,0 @@
-open (url, timeout)
-checkLinkPresentByHref (href)
-checkLinkPresentByName (link name)
-checkPageTitle (text)
-checkPageContains (text)

@@ -8,15 +8,17 @@ import com.raik.url_explorer.utils.URLWorker;
 import com.raik.url_explorer.instruction.Instruction;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Универсальный обработчик объектов типа Instruction. Принимает объект Instruction, определяет ее тип и на основании
- * этого типа выполняет необходимое действие предусмотренное инструкцией.
+ * Универсальный обработчик объектов типа Instruction. Принимает объект Instruction, определяет тип инструкции
+ * и на основании этого типа выполняет определенное действие с параметрами из инструкции.
  * При необходимости может использовать сторонние утилиты.
  * @author Raik Yauheni
  */
@@ -33,10 +35,17 @@ public class Handler {
     List<Long> elapsedTimes = new ArrayList<>();
 
     /**
-     *  Выполняет интсрукцию на основании ее типа. Возварщает строку с резальтатом выполнения инструкции,
-     *  текстом инструкции и затраченном времени в секундах с точностью до тысячных.
-     * @param instruction
-     * @return
+     *  Выполняет инструкцию на основании ее типа. Возварщает строку с результатом выполнения:
+     *  Первый символ в строке:
+     *  "+" успешное выполнение,
+     *  "!" неудача,
+     *  "-" неправильный формат инструкции.
+     *  Далее следует текст инструкции, заключенный в квадратные скобки [] и затраченное времени в секундах
+     *  c точностью до тысячных.
+     *  пример инструкции с неудачным результатом выполнения: ! [checkLinkPresentByName "Google Search Page"] 0.000
+     *
+     * @param instruction инструкция для обработки
+     * @return результат выполнения в виде сообщения
      * @throws WrongInstructionException
      * @throws CannotCreateLogFileException
      */
@@ -49,7 +58,7 @@ public class Handler {
         switch (instruction.getType()) {
 
             case BEGIN:
-                logMessage =  "Logging for file: " + args[0];
+                logMessage =  "Log for file: " + args[0];
                 break;
 
             case OPEN:
@@ -116,7 +125,6 @@ public class Handler {
     }
 
     public String createLogMessageForInstruction (boolean isPassed, TypesInstructions type, String ... args) {
-
         long elapsedTime = stopWatch.stopAndGetElapsedTimeMillis();
         elapsedTimes.add(elapsedTime);
         countInstructions(isPassed);
@@ -126,6 +134,7 @@ public class Handler {
             logMessage = createLogMessageForWorkInstruction(isPassed, type, args);
         } else {
             logMessage = createLogMessageForErrorInstruction(args[0]);
+
         }
         logMessage += " " + convertMillsToSeconds(elapsedTime);
 
@@ -134,9 +143,7 @@ public class Handler {
     }
      public String createLogMessageForErrorInstruction(String line){
         StringBuilder sb = new StringBuilder();
-        sb.append("- [")
-            .append(line.substring(1, line.length()-1))
-            .append("]");
+        sb.append("- [").append(line).append("]");
         return sb.toString();
     }
 

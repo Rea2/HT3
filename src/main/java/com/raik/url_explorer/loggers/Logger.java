@@ -5,9 +5,12 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
 
 /**
+ * Выполняет запись коллекции строк в файл. Путь к файлу задается в просцессе создания экземпляра данного класса.
+ * Для реализации новых режимов работы доступен вариант записи по умолчанию.
  * @author Raik Yauheni    14.12.2018.
  */
 public class Logger {
@@ -22,7 +25,7 @@ public class Logger {
         this.pathLogFile = pathLogFile;
     }
 
-    public void logging (List<String> lines) throws IOException {
+    public void logging (Collection<String> lines) throws IOException {
         Path file = Paths.get(pathLogFile);
         Files.write(file, lines, Charset.forName("UTF-8"));
     }

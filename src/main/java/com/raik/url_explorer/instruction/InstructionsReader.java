@@ -7,10 +7,10 @@ import java.util.Deque;
 
 /**
  * Класс предназначен для чтения строк с инструкциями из потока данных(текстового файла), создания из этих строк
- * объектов типа Instruction а также служебных инструкций, добавления  инструкций в очередь ArrayDeque,
- * обеспечение доступа к коллеккци инстукций через метод nextInstruction(). Перед чтением каждого файла
+ * объектов типа Instruction (рабочих или  служебных), добавления  объектов  Instruction в очередь ArrayDeque,
+ * обеспечение доступа к коллекции инстукций через метод nextInstruction(). Перед чтением каждого файла
  * добавляется служебная инструкция типа BEGIN. По окончанию чтения интрукция типа END. Это позволяет
- * прочитать несколько файлов а затем при обработке использовать использовать эти инструкции для разделения файлов.
+ * прочитать несколько файлов а затем организовать раздельный вывод результатов.
  *
  * @author Raik Yauheni
  */
@@ -23,6 +23,10 @@ public class InstructionsReader {
         // Set subArray with types of working instructions
         typesWorkInstructions = Arrays.copyOfRange(TypesInstructions.values(),
                 0, TypesInstructions.ERROR_READING.ordinal());
+    }
+
+    public Deque<Instruction> getInstructions() {
+        return instructions;
     }
 
     public boolean addInstructionsFromFile(String filePath) {
@@ -66,23 +70,24 @@ public class InstructionsReader {
     }
 
     /**
-     * Создает и возвращает обеъект {@link Instruction}. Метода птыатеся создать рабочую инструкцию из списка
-     * поддерживаемых {@link TypesInstructions}.  Если интрукция не может быть распознана,
-     * вызаветася метод createErrorInstruction(String line) и возвращается инструкция типа ERROR_READING
+     * Создает и возвращает обеъект {@link Instruction}. Метода пытаеся создать рабочую инструкцию из списка
+     * поддерживаемых {@link TypesInstructions}.  Если инструкция не может быть распознана,
+     *  возвращается инструкция типа ERROR_READING, через метод createErrorInstruction(String line)
      * @param line строка содержащая текст инструкции с параметрами
      * @return объект Instruction
      */
     public Instruction createInstruction(String line) {
 
         // Check line.  If the line contains supported working instruction, the method will create working instruction
+        line = line.trim();
         for (TypesInstructions type : typesWorkInstructions) {
             if (line.startsWith(type.getAbbreviation())) {
                 return createWorkingInstruction(type, line);
             }
         }
-         // ...otherwise it will create ERROR_READING instruction
+        // ...otherwise it will create ERROR_READING instruction
         return createErrorInstruction(line);
-        }
+    }
 
     /**
      * Созадет служебную интструкцию типа BEGIN.
@@ -94,15 +99,18 @@ public class InstructionsReader {
     }
 
     private Instruction createWorkingInstruction(TypesInstructions type, String line) {
-        Instruction result;
-        String bodyInstruction =
-                line.replaceFirst(type.getAbbreviation() + " \"","" );
+        String bodyInstruction = line.replaceFirst(type.getAbbreviation() + " +\"","" );
+                bodyInstruction.trim();
+                String str = line.replaceFirst("[\"]$", "");
+                if (str.length() + 1 != line.length()) {
+                    return createErrorInstruction(line);
+                }
         bodyInstruction = bodyInstruction.substring(0, bodyInstruction.length()-1);
-        String[] arguments  = bodyInstruction.split("\" \"");
-        if (isNumberOfParametarsCorrect(type, arguments)) {
+        String[] arguments  = bodyInstruction.split("\" +\"");
+        if (isNumberOfParametersCorrect(type, arguments)) {
             return new Instruction(type, arguments);
         } else {
-            return new Instruction(TypesInstructions.ERROR_READING, Instruction.ERROR_NUMBER_ARGUMENTS);
+            return createErrorInstruction(line);
         }
     }
 
@@ -120,25 +128,16 @@ public class InstructionsReader {
      * @param file файл из которого выполняется чтение интсрукций
      * @return
      */
-    private Instruction createEndOfFileInstruction(File file) {
+    private Instruction createEndOfFileInstruction(File file)  {
         return new Instruction(TypesInstructions.END, file.getAbsolutePath());
     }
 
-    /**
-     * Проверяет правильное ли число параметров у данной инструкции
-     * @param type типа проверяемой интсрукции
-     * @param args массив аргументов для данного типа инструкции
-     * @return
-     */
-    private boolean isNumberOfParametarsCorrect(TypesInstructions type, String[] args) {
-       if ((type == TypesInstructions.OPEN) && (args.length ==2)) {
-           return true;
-       }  else if ( (  (type == TypesInstructions.CHECK_PAGE_CONTAINS)
-                    || (type == TypesInstructions.CHECK_LINK_PRESENT_BY_NAME)
-                    || (type == TypesInstructions.CHECK_LINK_PRESENT_BY_HREF)
-                    || (type == TypesInstructions.CHECK_PAGE_TITLE))
-               && (args.length ==1)){
-           return true;
-       } else return false;
+    private boolean isNumberOfParametersCorrect(TypesInstructions type, String[] args) {
+        if ((type == TypesInstructions.OPEN) && (args.length ==2)) {
+            return true;
+        }  else if (args.length == 1) {
+            return true;
+        }
+        else return false;
     }
 }
